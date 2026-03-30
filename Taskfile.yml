@@ -1,0 +1,15 @@
+version: "3"
+
+tasks:
+  tidy:
+    cmds:
+      - go mod tidy
+  vet:
+    cmds:
+      - go vet ./...
+  fix:
+    cmds:
+      - go fix ./...
+  watch:
+    cmds:
+      - air
