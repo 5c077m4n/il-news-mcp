@@ -27,12 +27,20 @@ func getNews(
 	_req *mcp.CallToolRequest,
 	_params *getNewsParams,
 ) (*mcp.CallToolResult, any, error) {
-	feed, err := feed.GetYnet()
+	feedAgg := map[string]any{}
+	ynetFeed, err := feed.GetYnet()
+	if err != nil {
+		return nil, nil, err
+	}
+	abuFeed, err := feed.GetAbuAliExpress()
 	if err != nil {
 		return nil, nil, err
 	}
 
-	data, err := json.Marshal(feed)
+	feedAgg["ynet"] = ynetFeed
+	feedAgg["abu_ali_express"] = abuFeed
+
+	data, err := json.Marshal(feedAgg)
 	if err != nil {
 		return nil, nil, err
 	}
