@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 	"net/http"
+	"sync"
 	"time"
 
 	"github.com/5c077m4n/il-news-mcp/server/feed"
@@ -28,17 +29,27 @@ func getNews(
 	_params *getNewsParams,
 ) (*mcp.CallToolResult, any, error) {
 	feedAgg := map[string]any{}
-	ynetFeed, err := feed.GetYnet()
-	if err != nil {
-		return nil, nil, err
-	}
-	abuFeed, err := feed.GetAbuAliExpress()
-	if err != nil {
-		return nil, nil, err
-	}
+	var wg sync.WaitGroup
 
-	feedAgg["ynet"] = ynetFeed
-	feedAgg["abu_ali_express"] = abuFeed
+	wg.Go(func() {
+		ynetFeed, err := feed.GetYnet()
+		if err != nil {
+			slog.Error("could not fetch Ynet feed", "error", err.Error())
+			return
+		}
+
+		feedAgg["ynet"] = ynetFeed // TODO: make sure maps can be used in async exec
+	})
+	wg.Go(func() {
+		abuFeed, err := feed.GetAbuAliExpress()
+		if err != nil {
+			slog.Error("could not fetch Abu Ali Express feed", "error", err.Error())
+			return
+		}
+
+		feedAgg["abu_ali_express"] = abuFeed // TODO: make sure maps can be used in async exec
+	})
+	wg.Wait()
 
 	data, err := json.Marshal(feedAgg)
 	if err != nil {
