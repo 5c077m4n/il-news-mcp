@@ -28,7 +28,7 @@ func getNews(
 	_req *mcp.CallToolRequest,
 	_params *getNewsParams,
 ) (*mcp.CallToolResult, any, error) {
-	feedAgg := map[string]any{}
+	feedAgg := sync.Map{}
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
@@ -38,7 +38,7 @@ func getNews(
 			return
 		}
 
-		feedAgg["ynet"] = ynetFeed // TODO: make sure maps can be used in async exec
+		feedAgg.Store("ynet", ynetFeed)
 	})
 	wg.Go(func() {
 		abuFeed, err := feed.GetAbuAliExpress()
@@ -47,11 +47,16 @@ func getNews(
 			return
 		}
 
-		feedAgg["abu_ali_express"] = abuFeed // TODO: make sure maps can be used in async exec
+		feedAgg.Store("abu_ali_express", abuFeed)
 	})
 	wg.Wait()
 
-	data, err := json.Marshal(feedAgg)
+	tmpFeedAgg := make(map[string]any)
+	feedAgg.Range(func(key, value any) bool {
+		tmpFeedAgg[key.(string)] = value
+		return true
+	})
+	data, err := json.Marshal(tmpFeedAgg)
 	if err != nil {
 		return nil, nil, err
 	}
