@@ -97,8 +97,11 @@ func fetchTelegramChannelMessages(
 		)
 	}
 
+	decoder := json.NewDecoder(resp.Body)
+	decoder.DisallowUnknownFields()
+
 	var response TelegramResponse
-	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
+	if err := decoder.Decode(&response); err != nil {
 		return nil, err
 	}
 
