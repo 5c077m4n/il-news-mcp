@@ -24,7 +24,7 @@ type getNewsParams struct {
 }
 
 func getNews(
-	_ctx context.Context,
+	ctx context.Context,
 	_req *mcp.CallToolRequest,
 	_params *getNewsParams,
 ) (*mcp.CallToolResult, any, error) {
@@ -32,7 +32,7 @@ func getNews(
 	var wg sync.WaitGroup
 
 	wg.Go(func() {
-		ynetFeed, err := feed.GetYnet()
+		ynetFeed, err := feed.GetYnet(ctx)
 		if err != nil {
 			slog.Error("could not fetch Ynet feed", "error", err.Error())
 			return
@@ -41,7 +41,7 @@ func getNews(
 		feedAgg.Store("ynet", ynetFeed)
 	})
 	wg.Go(func() {
-		abuFeed, err := feed.GetAbuAliExpress()
+		abuFeed, err := feed.GetAbuAliExpress(ctx)
 		if err != nil {
 			slog.Error("could not fetch Abu Ali Express feed", "error", err.Error())
 			return

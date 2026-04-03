@@ -1,7 +1,11 @@
 package feed
 
-func GetAbuAliExpress() ([]string, error) {
-	messages, err := fetchTelegramChannelMessages("abualiexpress", 10)
+import "context"
+
+const abuTelegramChannel = "abualiexpress"
+
+func GetAbuAliExpress(ctx context.Context) ([]string, error) {
+	messages, err := fetchTelegramChannelMessages(ctx, abuTelegramChannel, 10)
 	if err != nil {
 		return nil, err
 	}

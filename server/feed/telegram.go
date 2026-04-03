@@ -1,6 +1,7 @@
 package feed
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"time"
 )
 
 var ErrTelegramBotTokenNotSet = errors.New("TELEGRAM_BOT_TOKEN environment variable not set")
@@ -59,13 +61,26 @@ func buildTelegramURL(chatID string, limit uint) (string, error) {
 
 }
 
-func fetchTelegramChannelMessages(chatID string, limit uint) ([]string, error) {
+func fetchTelegramChannelMessages(
+	ctx context.Context,
+	chatID string,
+	limit uint,
+) ([]string, error) {
 	telegramURL, err := buildTelegramURL(chatID, limit)
 	if err != nil {
 		return nil, err
 	}
 
-	resp, err := http.Get(telegramURL)
+	reqCtx, reqCancel := context.WithTimeout(ctx, 10*time.Second)
+	defer reqCancel()
+
+	req, err := http.NewRequestWithContext(reqCtx, http.MethodGet, telegramURL, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

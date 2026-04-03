@@ -1,6 +1,10 @@
 package feed
 
-import "github.com/mmcdole/gofeed"
+import (
+	"context"
+
+	"github.com/mmcdole/gofeed"
+)
 
 const YnetURL = "https://www.ynet.co.il/Integration/StoryRss2.xml"
 
@@ -60,8 +64,8 @@ func newYnetRSS(feed *gofeed.Feed) YnetRSS {
 	return ynet
 }
 
-func GetYnet() (*YnetRSS, error) {
-	feed, err := fetchRSS(YnetURL)
+func GetYnet(ctx context.Context) (*YnetRSS, error) {
+	feed, err := fetchRSS(ctx, YnetURL)
 	if err != nil {
 		return nil, err
 	}
