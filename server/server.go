@@ -12,13 +12,14 @@ import (
 	"time"
 
 	"github.com/5c077m4n/il-news-mcp/server/feed"
-	"github.com/5c077m4n/il-news-mcp/server/logger"
+	"github.com/5c077m4n/il-news-mcp/server/middleware/cors"
+	"github.com/5c077m4n/il-news-mcp/server/middleware/logger"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-const (
-	version = "0.1.0"
-)
+const version = "0.1.0"
+
+var corsMiddleware = cors.New()
 
 type getNewsParams struct {
 	DateRange [2]time.Time `json:"dateRange" jsonschema:"start/end dates for the news"`
@@ -104,5 +105,5 @@ func Run() error {
 	serverURL := fmt.Sprintf("%s:%d", *host, *port)
 	slog.Info("MCP server listening", "URL", serverURL)
 
-	return http.ListenAndServe(serverURL, handler)
+	return http.ListenAndServe(serverURL, corsMiddleware(handler))
 }
