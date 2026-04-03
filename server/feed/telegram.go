@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var ErrTelegramBotTokenNotSet = errors.New("TELEGRAM_BOT_TOKEN environment variable not set")
+var ErrTelegramBotTokenNotSet = errors.New("TELEGRAM_API_KEY environment variable not set")
 var ErrTelegramBotAPIStatusCode = errors.New("telegram API error")
 var ErrTelegramNotOKResponse = errors.New("telegram API returned a not OK status")
 
@@ -41,7 +41,7 @@ type (
 )
 
 func buildTelegramURL(chatID string, limit uint) (string, error) {
-	token, found := os.LookupEnv("TELEGRAM_BOT_TOKEN")
+	token, found := os.LookupEnv("TELEGRAM_API_KEY")
 	if !found || token == "" {
 		return "", ErrTelegramBotTokenNotSet
 	}
