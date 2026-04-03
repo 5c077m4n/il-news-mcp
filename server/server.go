@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"sync"
-	"time"
 
 	"github.com/5c077m4n/il-news-mcp/server/feed"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/cors"
@@ -21,14 +20,10 @@ const version = "0.1.0"
 
 var corsMiddleware = cors.New()
 
-type getNewsParams struct {
-	DateRange [2]time.Time `json:"dateRange" jsonschema:"start/end dates for the news"`
-}
-
 func getNews(
 	ctx context.Context,
 	_req *mcp.CallToolRequest,
-	_params *getNewsParams,
+	_params struct{},
 ) (*mcp.CallToolResult, any, error) {
 	feedAgg := sync.Map{}
 	var wg sync.WaitGroup
