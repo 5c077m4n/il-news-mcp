@@ -3,8 +3,11 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"flag"
+	"fmt"
 	"log/slog"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 
@@ -15,8 +18,6 @@ import (
 
 const (
 	version = "0.1.0"
-	port    = "8888"
-	url     = "127.0.0.1:" + port
 )
 
 type getNewsParams struct {
@@ -69,21 +70,36 @@ func getNews(
 }
 
 func Run() error {
+	host := flag.String("host", "0.0.0.0", "the host address to run this server on")
+	port := flag.Int("port", 8888, "the port to run this server on")
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage: %s [options]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "This program runs an MCP Israeli news server over SSE HTTP.\n\n")
+		fmt.Fprintf(os.Stderr, "Options:\n")
+		flag.PrintDefaults()
+		fmt.Fprintf(os.Stderr, "\nEndpoints:\n")
+		fmt.Fprintf(os.Stderr, "\t/news - get the latest news\n")
+		os.Exit(1)
+	}
+	flag.Parse()
+
 	server := mcp.NewServer(&mcp.Implementation{Name: "il-news-mcp", Version: version}, nil)
 	server.AddReceivingMiddleware(logger.New())
-	mcp.AddTool(server, &mcp.Tool{
-		Name:        "news",
-		Description: "Get the most relevant news",
-	}, getNews)
+	mcp.AddTool(server, &mcp.Tool{Name: "news", Description: "Get the most relevant news"}, getNews)
 
 	handler := mcp.NewSSEHandler(func(request *http.Request) *mcp.Server {
 		url := request.URL.Path
+		slog.Info("Handling request", "URL", url)
+
 		switch url {
 		default:
 			return server
 		}
 	}, nil)
 
-	slog.Info("MCP server listening", "URL", url)
-	return http.ListenAndServe(url, handler)
+	serverURL := fmt.Sprintf("%s:%d", *host, *port)
+	slog.Info("MCP server listening", "URL", serverURL)
+
+	return http.ListenAndServe(serverURL, handler)
 }
