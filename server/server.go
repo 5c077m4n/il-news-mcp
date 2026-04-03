@@ -76,8 +76,12 @@ func Run() error {
 		Description: "Get the most relevant news",
 	}, getNews)
 
-	handler := mcp.NewStreamableHTTPHandler(func(_req *http.Request) *mcp.Server {
-		return server
+	handler := mcp.NewSSEHandler(func(request *http.Request) *mcp.Server {
+		url := request.URL.Path
+		switch url {
+		default:
+			return server
+		}
 	}, nil)
 
 	slog.Info("MCP server listening", "URL", url)
