@@ -84,7 +84,10 @@ func Run() error {
 	}
 	flag.Parse()
 
-	server := mcp.NewServer(&mcp.Implementation{Name: "il-news-mcp", Version: version}, nil)
+	server := mcp.NewServer(
+		&mcp.Implementation{Name: "il-news-mcp", Version: version},
+		&mcp.ServerOptions{Logger: slog.Default()},
+	)
 	server.AddReceivingMiddleware(logger.New())
 	mcp.AddTool(server, &mcp.Tool{Name: "news", Description: "Get the most relevant news"}, getNews)
 
