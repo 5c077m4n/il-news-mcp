@@ -2,13 +2,14 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
+	"time"
 
 	"github.com/5c077m4n/il-news-mcp/server/feed"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/cors"
@@ -48,21 +49,29 @@ func getNews(
 	})
 	wg.Wait()
 
-	tmpFeedAgg := make(map[string]any)
-	feedAgg.Range(func(key, value any) bool {
-		tmpFeedAgg[key.(string)] = value
-		return true
-	})
-	data, err := json.Marshal(tmpFeedAgg)
-	if err != nil {
-		return nil, nil, err
+	content := []mcp.Content{}
+	if ynetFeed, found := feedAgg.Load("ynet"); found {
+		ynetFeed := ynetFeed.([]string)
+		content = append(
+			content,
+			&mcp.TextContent{
+				Text: strings.Join(ynetFeed, "\n"),
+				Meta: mcp.Meta{"fetchedAt": time.Now(), "source": "ynet"},
+			},
+		)
+	}
+	if abuFeed, found := feedAgg.Load("abu_ali_express"); found {
+		abuFeed := abuFeed.([]string)
+		content = append(
+			content,
+			&mcp.TextContent{
+				Text: strings.Join(abuFeed, "\n"),
+				Meta: mcp.Meta{"fetchedAt": time.Now(), "source": "abu ali express"},
+			},
+		)
 	}
 
-	return &mcp.CallToolResult{
-		Content: []mcp.Content{
-			&mcp.TextContent{Text: string(data)},
-		},
-	}, nil, nil
+	return &mcp.CallToolResult{Content: content}, nil, nil
 }
 
 func Run() error {
@@ -82,7 +91,7 @@ func Run() error {
 
 	server := mcp.NewServer(
 		&mcp.Implementation{Name: "il-news-mcp", Version: version},
-		&mcp.ServerOptions{Logger: slog.Default()},
+		&mcp.ServerOptions{Logger: slog.Default().WithGroup("MCP Server")},
 	)
 	server.AddReceivingMiddleware(logger.New())
 	mcp.AddTool(server, &mcp.Tool{Name: "news", Description: "Get the most relevant news"}, getNews)

@@ -2,9 +2,9 @@ package feed
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/goccy/go-json"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -101,7 +101,7 @@ func fetchTelegramChannelMessages(
 	decoder.DisallowUnknownFields()
 
 	var response TelegramResponse
-	if err := decoder.Decode(&response); err != nil {
+	if err := decoder.DecodeContext(ctx, &response); err != nil {
 		return nil, err
 	}
 

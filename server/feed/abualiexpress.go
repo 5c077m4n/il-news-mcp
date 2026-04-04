@@ -2,7 +2,7 @@ package feed
 
 import "context"
 
-const abuTelegramChannel = "abualiexpress"
+const abuTelegramChannel = "@abualiexpress"
 
 func GetAbuAliExpress(ctx context.Context) ([]string, error) {
 	messages, err := fetchTelegramChannelMessages(ctx, abuTelegramChannel, 10)
