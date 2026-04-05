@@ -1,0 +1,4 @@
+.git/
+.air.toml
+Taskfile.yml
+main
