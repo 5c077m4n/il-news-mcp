@@ -13,6 +13,7 @@ import (
 	"github.com/5c077m4n/il-news-mcp/server/feed"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/cors"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/logger"
+	"github.com/5c077m4n/il-news-mcp/server/middleware/session"
 	"github.com/goccy/go-json"
 	"github.com/mmcdole/gofeed"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -21,6 +22,7 @@ import (
 const version = "0.1.0"
 
 var corsMiddleware = cors.New()
+var sessionMiddleware = session.New()
 
 func getNews(
 	ctx context.Context,
@@ -104,5 +106,5 @@ func Run() error {
 	serverURL := fmt.Sprintf("%s:%d", *host, *port)
 	slog.Info("MCP server listening", "URL", serverURL)
 
-	return http.ListenAndServe(serverURL, corsMiddleware(handler))
+	return http.ListenAndServe(serverURL, corsMiddleware(sessionMiddleware(handler)))
 }
