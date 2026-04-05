@@ -7,13 +7,13 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/5c077m4n/il-news-mcp/server/feed"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/cors"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/logger"
+	"github.com/goccy/go-json"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -32,43 +32,29 @@ func getNews(
 	wg.Go(func() {
 		ynetFeed, err := feed.GetYnet(ctx)
 		if err != nil {
-			slog.Error("could not fetch Ynet feed", "error", err.Error())
+			slog.Error("could not fetch Ynet feed", "error", err)
 			return
 		}
 
-		feedAgg.Store("ynet", ynetFeed)
-	})
-	wg.Go(func() {
-		abuFeed, err := feed.GetAbuAliExpress(ctx)
-		if err != nil {
-			slog.Error("could not fetch Abu Ali Express feed", "error", err.Error())
-			return
-		}
-
-		feedAgg.Store("abu_ali_express", abuFeed)
+		feedAgg.Store("ynet", ynetFeed.Channel.Items)
 	})
 	wg.Wait()
 
 	content := []mcp.Content{}
 	if ynetFeed, found := feedAgg.Load("ynet"); found {
-		ynetFeed := ynetFeed.([]string)
-		content = append(
-			content,
-			&mcp.TextContent{
-				Text: strings.Join(ynetFeed, "\n"),
-				Meta: mcp.Meta{"fetchedAt": time.Now(), "source": "ynet"},
-			},
-		)
-	}
-	if abuFeed, found := feedAgg.Load("abu_ali_express"); found {
-		abuFeed := abuFeed.([]string)
-		content = append(
-			content,
-			&mcp.TextContent{
-				Text: strings.Join(abuFeed, "\n"),
-				Meta: mcp.Meta{"fetchedAt": time.Now(), "source": "abu ali express"},
-			},
-		)
+		ynetFeed := ynetFeed.([]feed.YNetRSSItem)
+
+		if ynetFeedBytes, err := json.MarshalContext(ctx, ynetFeed); err == nil {
+			content = append(
+				content,
+				&mcp.TextContent{
+					Text: string(ynetFeedBytes),
+					Meta: mcp.Meta{"fetchedAt": time.Now(), "source": "ynet", "orientation": -5},
+				},
+			)
+		} else {
+			slog.Warn("could not fetch YNet's RSS feed", "error", err)
+		}
 	}
 
 	return &mcp.CallToolResult{Content: content}, nil, nil
@@ -91,7 +77,7 @@ func Run() error {
 
 	server := mcp.NewServer(
 		&mcp.Implementation{Name: "il-news-mcp", Version: version},
-		&mcp.ServerOptions{Logger: slog.Default().WithGroup("MCP Server")},
+		&mcp.ServerOptions{Logger: slog.Default().WithGroup("mcp_server")},
 	)
 	server.AddReceivingMiddleware(logger.New())
 	mcp.AddTool(server, &mcp.Tool{Name: "news", Description: "Get the most relevant news"}, getNews)
