@@ -14,6 +14,7 @@ import (
 	"github.com/5c077m4n/il-news-mcp/server/middleware/cors"
 	"github.com/5c077m4n/il-news-mcp/server/middleware/logger"
 	"github.com/goccy/go-json"
+	"github.com/mmcdole/gofeed"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
@@ -27,33 +28,41 @@ func getNews(
 	_params struct{},
 ) (*mcp.CallToolResult, any, error) {
 	feedAgg := sync.Map{}
-	var wg sync.WaitGroup
+	wg := sync.WaitGroup{}
 
-	wg.Go(func() {
-		ynetFeed, err := feed.GetYnet(ctx)
-		if err != nil {
-			slog.Error("could not fetch Ynet feed", "error", err)
-			return
-		}
+	for source, getterFn := range feed.NewsSourceToGetter {
+		wg.Go(func() {
+			feedContent, err := getterFn(ctx)
+			if err != nil {
+				slog.WarnContext(ctx, "could not fetch feed", "source", source, "error", err)
+				return
+			}
 
-		feedAgg.Store("ynet", ynetFeed.Channel.Items)
-	})
+			feedAgg.Store(source, feedContent.Items)
+		})
+	}
 	wg.Wait()
 
 	content := []mcp.Content{}
-	if ynetFeed, found := feedAgg.Load("ynet"); found {
-		ynetFeed := ynetFeed.([]feed.YNetRSSItem)
+	for source, orientation := range feed.NewsSourceToOrientation {
+		if feedContent, found := feedAgg.Load(source); found {
+			feedContent := feedContent.([]*gofeed.Item)
 
-		if ynetFeedBytes, err := json.MarshalContext(ctx, ynetFeed); err == nil {
-			content = append(
-				content,
-				&mcp.TextContent{
-					Text: string(ynetFeedBytes),
-					Meta: mcp.Meta{"fetchedAt": time.Now(), "source": "ynet", "orientation": -5},
-				},
-			)
-		} else {
-			slog.Warn("could not fetch YNet's RSS feed", "error", err)
+			if feedContentBytes, err := json.MarshalContext(ctx, feedContent); err == nil {
+				content = append(
+					content,
+					&mcp.TextContent{
+						Text: string(feedContentBytes),
+						Meta: mcp.Meta{
+							"fetchedAt":   time.Now(),
+							"source":      source,
+							"orientation": orientation,
+						},
+					},
+				)
+			} else {
+				slog.WarnContext(ctx, "could not fetch YNet's RSS feed", "error", err)
+			}
 		}
 	}
 
