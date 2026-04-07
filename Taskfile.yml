@@ -10,6 +10,9 @@ tasks:
   fix:
     cmds:
       - go fix ./...
+  test:
+    cmds:
+      - go test -v {{default "./..." .TEST_DIR}}
   watch:
     cmds:
       - air
