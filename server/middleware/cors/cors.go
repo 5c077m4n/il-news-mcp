@@ -1,8 +1,6 @@
 package cors
 
-import (
-	"net/http"
-)
+import "net/http"
 
 func New() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {

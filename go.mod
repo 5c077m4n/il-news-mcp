@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/goccy/go-json v0.10.6
+	github.com/google/uuid v1.6.0
 	github.com/mmcdole/gofeed v1.3.0
 	github.com/modelcontextprotocol/go-sdk v1.4.1
 )
