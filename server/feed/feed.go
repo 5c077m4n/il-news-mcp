@@ -6,22 +6,22 @@ import (
 	"github.com/mmcdole/gofeed"
 )
 
-type newsSource string
+type NewsSource string
 
 const (
-	ynetSource              newsSource = "ynet"
-	makoSource              newsSource = "mako"
-	israelHayomSource       newsSource = "israelHayom"
-	wallaSource             newsSource = "walla"
-	maarivSource            newsSource = "maariv"
-	globsSource             newsSource = "globs"
-	jPostSource             newsSource = "jpost"
-	theMarkerSource         newsSource = "theMarker"
-	reutersMiddleEastSource newsSource = "reutersMiddleEast"
+	ynetSource              NewsSource = "ynet"
+	makoSource              NewsSource = "mako"
+	israelHayomSource       NewsSource = "israelHayom"
+	wallaSource             NewsSource = "walla"
+	maarivSource            NewsSource = "maariv"
+	globsSource             NewsSource = "globs"
+	jPostSource             NewsSource = "jpost"
+	theMarkerSource         NewsSource = "theMarker"
+	reutersMiddleEastSource NewsSource = "reutersMiddleEast"
 )
 
 var (
-	NewsSourceToGetter = map[newsSource]func(context.Context) (*gofeed.Feed, error){
+	NewsSourceToGetter = map[NewsSource]func(context.Context) (*gofeed.Feed, error){
 		ynetSource:              getYnet,
 		makoSource:              getMako,
 		israelHayomSource:       getIseaelHayom,
@@ -32,7 +32,7 @@ var (
 		theMarkerSource:         getTheMarker,
 		reutersMiddleEastSource: getReutersMiddelEast,
 	}
-	NewsSourceToOrientation = map[newsSource]int8{
+	NewsSourceToOrientation = map[NewsSource]int8{
 		ynetSource:              -5,
 		makoSource:              -5,
 		israelHayomSource:       5,
