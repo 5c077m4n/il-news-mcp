@@ -3,6 +3,7 @@ module github.com/5c077m4n/il-news-mcp
 go 1.26.1
 
 require (
+	github.com/5c077m4n/pikud-haoref-api-go/history v0.0.0-20260318190006-3551095a524d
 	github.com/goccy/go-json v0.10.6
 	github.com/google/uuid v1.6.0
 	github.com/mmcdole/gofeed v1.3.0
@@ -11,6 +12,7 @@ require (
 )
 
 require (
+	github.com/5c077m4n/pikud-haoref-api-go v0.1.0 // indirect
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect

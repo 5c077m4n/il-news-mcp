@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/5c077m4n/il-news-mcp/server/feed"
+	"github.com/5c077m4n/pikud-haoref-api-go/history"
 	"github.com/goccy/go-json"
 	"github.com/mmcdole/gofeed"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
@@ -56,10 +57,34 @@ func getNews(
 					},
 				)
 			} else {
-				slog.WarnContext(ctx, "could not fetch YNet's RSS feed", "error", err)
+				slog.WarnContext(ctx, "could not fetch RSS feed", "source", source, "error", err)
 			}
 		}
 	}
 
+	return &mcp.CallToolResult{Content: content}, nil, nil
+}
+
+func getMissileAlerts(
+	ctx context.Context,
+	_req *mcp.CallToolRequest,
+	_params struct{},
+) (*mcp.CallToolResult, any, error) {
+	alerts, err := history.FetchAlerts()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	alertsBytes, err := json.MarshalContext(ctx, alerts)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	content := []mcp.Content{
+		&mcp.TextContent{
+			Text: string(alertsBytes),
+			Meta: mcp.Meta{"fetchedAt": time.Now()},
+		},
+	}
 	return &mcp.CallToolResult{Content: content}, nil, nil
 }

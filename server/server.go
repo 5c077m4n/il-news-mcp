@@ -27,6 +27,11 @@ func createServer() *mcp.Server {
 	)
 	server.AddReceivingMiddleware(logger.New())
 	mcp.AddTool(server, &mcp.Tool{Name: "news", Description: "Get the most relevant news"}, getNews)
+	mcp.AddTool(
+		server,
+		&mcp.Tool{Name: "missile-alerts", Description: "Get current missile alerts"},
+		getMissileAlerts,
+	)
 
 	return server
 }
