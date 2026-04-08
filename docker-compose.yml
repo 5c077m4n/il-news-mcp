@@ -1,8 +1,6 @@
 services:
   il-news-mcp:
     build: .
-    env_file:
-      - .env
     restart: unless-stopped
     ports:
       - 8880:8880
