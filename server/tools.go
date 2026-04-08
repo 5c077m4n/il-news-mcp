@@ -70,7 +70,7 @@ func getMissileAlerts(
 	_req *mcp.CallToolRequest,
 	_params struct{},
 ) (*mcp.CallToolResult, any, error) {
-	alerts, err := history.FetchAlerts()
+	alerts, err := history.FetchAlerts(ctx)
 	if err != nil {
 		return nil, nil, err
 	}
